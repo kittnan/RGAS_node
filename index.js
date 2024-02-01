@@ -36,6 +36,9 @@ app.use("/masters", MASTER);
 let DEFECT = require("./src/routes/defect");
 app.use("/defect", DEFECT);
 
+let CLAIM = require("./src/routes/claim");
+app.use("/claim", CLAIM);
+
 
 
 app.use(function (req, res, next) {

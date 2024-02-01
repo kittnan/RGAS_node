@@ -3,14 +3,18 @@ const Schema = mongoose.Schema;
 
 const model = new Schema(
   {
-    employee_code: String,
-    name: String,
-    auth_admin: String,
-    auth_user: String,
+    employeeCode: String,
+    firstName: String,
+    lastName: String,
+    email: String,
+    access: [],
+    corporate: String,
+    department: String,
+    sectionName: String,
+    sectionCode: String,
     active: {
       type: Boolean,
       default: true,
-      require: true,
     },
   },
   { timestamps: true, versionKey: false, strict: true }

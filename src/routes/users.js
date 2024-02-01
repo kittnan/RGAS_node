@@ -17,8 +17,8 @@ router.post("/login", async (req, res, next) => {
       const resDB = await USERS.aggregate([
         {
           $match: {
-            username: payload.username,
-            password: payload.password,
+            employeeCode: payload.username,
+            employeeCode: payload.password,
           },
         },
       ]);
@@ -50,16 +50,37 @@ router.post("/import", async (req, res, next) => {
     res.sendStatus(500);
   }
 });
+router.post("/create", async (req, res, next) => {
+  try {
+    const data = await USERS.insertMany(req.body);
+    res.json(data);
+  } catch (error) {
+    console.log("🚀 ~ error:", error);
+    res.sendStatus(500);
+  }
+});
 
 router.get("/", async (req, res, next) => {
   try {
-    const usersQuery = await USERS.aggregate([
+    let { access, active = true } = req.query
+    let con = [
       {
         $match: {
-          active: true,
-        },
-      },
-    ]);
+          active: active
+        }
+      }
+    ]
+    if (access) {
+      access = JSON.parse(access)
+      con.push({
+        $match: {
+          access: {
+            $in: access
+          }
+        }
+      })
+    }
+    const usersQuery = await USERS.aggregate(con);
     res.json(usersQuery);
   } catch (error) {
     console.log("🚀 ~ error:", error);
