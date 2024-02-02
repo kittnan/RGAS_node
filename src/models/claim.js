@@ -9,7 +9,7 @@ const model = new Schema(
     "productNo": String,
     "customerNo": String,
     "modelCode": String,
-    "analysisPIC": String,
+    "analysisPIC": Object,
     "customerName": String,
     "type": String,
     "descriptionJP": String,

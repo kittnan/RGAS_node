@@ -10,6 +10,7 @@ const moment = require("moment");
 router.get("/", async (req, res, next) => {
   try {
     let { access, active = true } = req.query
+    console.log("🚀 ~ active:", active)
     let con = [
       {
         $match: {
