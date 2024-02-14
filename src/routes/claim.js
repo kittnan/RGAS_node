@@ -9,7 +9,7 @@ const moment = require("moment");
 
 router.get("/", async (req, res, next) => {
   try {
-    let { access, active = true } = req.query
+    let { access, active = true, registerNo } = req.query
     console.log("🚀 ~ active:", active)
     let con = [
       {
@@ -24,6 +24,16 @@ router.get("/", async (req, res, next) => {
         $match: {
           access: {
             $in: access
+          }
+        }
+      })
+    }
+    if (registerNo) {
+      registerNo = JSON.parse(registerNo)
+      con.push({
+        $match: {
+          registerNo: {
+            $in: registerNo
           }
         }
       })

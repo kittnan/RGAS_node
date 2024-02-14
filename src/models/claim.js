@@ -40,15 +40,21 @@ const model = new Schema(
     "files": [
       {
         date: Date,
-        delete_path:String,
-        filename:String,
-        index:Number,
-        path:String
+        delete_path: String,
+        filename: String,
+        index: Number,
+        path: String
       }
     ],
     "status": String,
-    "active": Boolean,
-    "no":Number
+    "active": {
+      default: true,
+      type: Boolean
+    },
+    "no": Number,
+    "flowPIC": Object,
+    "flowHistory": [{}],
+
   },
   { timestamps: true, versionKey: false, strict: true }
 );

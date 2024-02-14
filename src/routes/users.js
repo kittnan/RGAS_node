@@ -63,7 +63,7 @@ router.post("/create", async (req, res, next) => {
 
 router.get("/", async (req, res, next) => {
   try {
-    let { access, active = true } = req.query
+    let { access, active = true, } = req.query
     let con = [
       {
         $match: {

@@ -39,6 +39,9 @@ app.use("/defect", DEFECT);
 let CLAIM = require("./src/routes/claim");
 app.use("/claim", CLAIM);
 
+let RESULT = require("./src/routes/result");
+app.use("/result", RESULT);
+
 
 
 app.use(function (req, res, next) {
