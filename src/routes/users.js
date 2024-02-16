@@ -23,7 +23,7 @@ router.post("/login", async (req, res, next) => {
           },
         },
       ]);
-        res.json(resDB);
+      res.json(resDB);
     } else {
       const resDB = await USERS.aggregate([
         {
@@ -80,6 +80,44 @@ router.get("/", async (req, res, next) => {
           }
         }
       })
+    }
+    const usersQuery = await USERS.aggregate(con);
+    res.json(usersQuery);
+  } catch (error) {
+    console.log("🚀 ~ error:", error);
+    res.sendStatus(500);
+  }
+});
+router.get("/userNextApprove", async (req, res, next) => {
+  try {
+    let { access, active = true, formStatus } = req.query
+    let con = [
+      {
+        $match: {
+          active: active
+        }
+      }
+    ]
+    if (access) {
+      access = JSON.parse(access)
+      con.push({
+        $match: {
+          access: {
+            $in: access
+          }
+        }
+      })
+    }
+
+    if (formStatus) {
+      formStatus = JSON.parse(formStatus)
+      if (formStatus == 'draft') {
+        con.push({
+          $match: {
+            access: 'engineer'
+          }
+        })
+      }
     }
     const usersQuery = await USERS.aggregate(con);
     res.json(usersQuery);
