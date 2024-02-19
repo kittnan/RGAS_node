@@ -42,6 +42,15 @@ app.use("/claim", CLAIM);
 let RESULT = require("./src/routes/result");
 app.use("/result", RESULT);
 
+let D_CD = require("./src/routes/d-cd");
+app.use("/d-cd", D_CD);
+
+let S_CD = require("./src/routes/s-cd");
+app.use("/s-cd", S_CD);
+
+let L_CD = require("./src/routes/l-cd");
+app.use("/l-cd", L_CD);
+
 
 
 app.use(function (req, res, next) {

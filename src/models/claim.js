@@ -52,7 +52,7 @@ const model = new Schema(
       type: Boolean
     },
     "no": Number,
-    "flowPIC": Object,
+    "flowPIC": [{}],
     "flowHistory": [{}],
 
   },

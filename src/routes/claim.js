@@ -59,15 +59,15 @@ router.get("/", async (req, res, next) => {
 
 router.post("/createOrUpdate", async (req, res, next) => {
   try {
-    let body = req.body
-    if (body && body._id) {
-      const resData = await CLAIM.updateOne({ _id: new ObjectId(body._id) }, { $set: body })
+    let payload = req.body
+    if (payload && payload._id) {
+      const resData = await CLAIM.updateOne({ _id: new ObjectId(payload._id) }, { $set: payload })
       res.json(resData)
-
     } else {
       const registerNo = await createRegisterNo()
-      body['registerNo'] = registerNo
-      const resData = await CLAIM.insertMany(body)
+      payload['registerNo'] = registerNo
+      payload.no = 1
+      const resData = await CLAIM.insertMany(payload)
       res.json(resData)
     }
   } catch (error) {
