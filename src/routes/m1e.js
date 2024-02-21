@@ -2,46 +2,27 @@ let express = require("express");
 let router = express.Router();
 var mongoose = require("mongodb");
 const { ObjectId } = mongoose;
-const DEFECT = require("../models/defect");
+const M1E = require("../models/m1e");
 let axios = require("axios");
 
 router.get("/", async (req, res, next) => {
   try {
-    const usersQuery = await DEFECT.aggregate([
-      {
+    let { kydCD } = req.query
+    let condition = [{
+      $match: {}
+    }]
+    if (kydCD) {
+      kydCD = JSON.parse(kydCD)
+      condition.push({
         $match: {
-
-        },
-      },
-    ]);
+          "KYD Cd": {
+            $in: kydCD
+          }
+        }
+      })
+    }
+    const usersQuery = await M1E.aggregate(condition)
     res.json(usersQuery);
-  } catch (error) {
-    console.log("🚀 ~ error:", error);
-    res.sendStatus(500);
-  }
-});
-router.get("/table", async (req, res, next) => {
-  try {
-    let { page, limit } = req.query
-    let condition = [
-      {
-        $match: {}
-      }
-    ]
-    if (page && limit) {
-      condition.push({
-        $skip: page * limit,
-      });
-    }
-    if (limit && limit != 0) {
-      condition.push({
-        $limit: Number(limit),
-      });
-    }
-
-    const query = await DEFECT.aggregate(condition);
-    const count = await DEFECT.aggregate([{ $count: "rows" }]);
-    res.json({ data: query, count: count });
   } catch (error) {
     console.log("🚀 ~ error:", error);
     res.sendStatus(500);
@@ -49,7 +30,7 @@ router.get("/table", async (req, res, next) => {
 });
 router.post("/create", async (req, res, next) => {
   try {
-    const data = await DEFECT.insertMany(req.body)
+    const data = await M1E.insertMany(req.body)
     res.json(data);
   } catch (error) {
     console.log("🚀 ~ error:", error);
@@ -58,9 +39,9 @@ router.post("/create", async (req, res, next) => {
 });
 router.post("/import", async (req, res, next) => {
   try {
-    const deleteData = await DEFECT.deleteMany({})
+    const deleteData = await M1E.deleteMany({})
     console.log("🚀 ~ deleteData:", deleteData)
-    const data = await DEFECT.insertMany(req.body)
+    const data = await M1E.insertMany(req.body)
     res.json(data);
   } catch (error) {
     console.log("🚀 ~ error:", error);
@@ -78,7 +59,7 @@ router.put("/createOrUpdate", async (req, res, next) => {
 
       }
     })
-    const data = await DEFECT.insertMany(req.body)
+    const data = await M1E.insertMany(req.body)
     res.json(data);
   } catch (error) {
     console.log("🚀 ~ error:", error);

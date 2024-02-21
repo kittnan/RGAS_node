@@ -51,6 +51,15 @@ app.use("/s-cd", S_CD);
 let L_CD = require("./src/routes/l-cd");
 app.use("/l-cd", L_CD);
 
+let M1E = require("./src/routes/m1e");
+app.use("/m1e", M1E);
+
+let R_PRINCIPLE = require("./src/routes/r-principle");
+app.use("/r-principle", R_PRINCIPLE);
+
+let REPORT = require("./src/routes/report");
+app.use("/report", REPORT);
+
 
 
 app.use(function (req, res, next) {
