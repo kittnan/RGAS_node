@@ -7,7 +7,7 @@ let axios = require("axios");
 
 router.get("/", async (req, res, next) => {
   try {
-    let { registerNo, claimId } = req.query
+    let { registerNo, claimId, index, name } = req.query
     let con = [
       {
         $match: {}
@@ -29,6 +29,27 @@ router.get("/", async (req, res, next) => {
         $match: {
           claimId: {
             $in: claimId
+          }
+        }
+      })
+    }
+    if (name) {
+      name = JSON.parse(name)
+      con.push({
+        $match: {
+          name: {
+            $in: name
+          }
+        }
+      })
+    }
+    if (index) {
+      index = JSON.parse(index)
+      index = index.map(a=>Number(a))
+      con.push({
+        $match: {
+          index: {
+            $in: index
           }
         }
       })
