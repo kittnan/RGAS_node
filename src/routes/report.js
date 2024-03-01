@@ -7,7 +7,7 @@ let axios = require("axios");
 
 router.get("/", async (req, res, next) => {
   try {
-    let { registerNo, claimId, index, name } = req.query
+    let { registerNo, claimId, index, name, no } = req.query
     let con = [
       {
         $match: {}
@@ -45,11 +45,22 @@ router.get("/", async (req, res, next) => {
     }
     if (index) {
       index = JSON.parse(index)
-      index = index.map(a=>Number(a))
+      index = index.map(a => Number(a))
       con.push({
         $match: {
           index: {
             $in: index
+          }
+        }
+      })
+    }
+    if (no) {
+      no = JSON.parse(no)
+      no = no.map(a => Number(a))
+      con.push({
+        $match: {
+          no: {
+            $in: no
           }
         }
       })
@@ -96,6 +107,17 @@ router.post("/createOrUpdate", async (req, res, next) => {
       }
     })
     const data = await REPORT.bulkWrite(form)
+    res.json(data);
+  } catch (error) {
+    console.log("🚀 ~ error:", error);
+    res.sendStatus(500);
+  }
+});
+router.post("/delete", async (req, res, next) => {
+  try {
+    const data = await REPORT.bulkWrite([
+      { deleteOne: { filter: { _id: new ObjectId(req.body._id) } } }
+    ])
     res.json(data);
   } catch (error) {
     console.log("🚀 ~ error:", error);

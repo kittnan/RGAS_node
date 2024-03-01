@@ -8,7 +8,6 @@ let axios = require("axios");
 router.post("/login", async (req, res, next) => {
   try {
     const payload = req.body;
-    console.log("🚀 ~ payload:", payload)
     const adAcc = await axios.post("http://10.200.90.152:4038/AzureLogin/getByCondition", {
       username: payload.username,
       password: payload.password,
@@ -23,7 +22,11 @@ router.post("/login", async (req, res, next) => {
           },
         },
       ]);
-      res.json(resDB);
+      if (resDB && resDB.length > 0) {
+        res.json(resDB);
+      } else {
+        throw ''
+      }
     } else {
       const resDB = await USERS.aggregate([
         {
@@ -32,7 +35,11 @@ router.post("/login", async (req, res, next) => {
           },
         },
       ]);
-      res.json(resDB);
+      if (resDB && resDB.length > 0){
+        res.json(resDB);
+      }else{
+        throw ''
+      }
     }
   } catch (error) {
     console.log("🚀 ~ error:", error);

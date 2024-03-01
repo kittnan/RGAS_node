@@ -4,7 +4,13 @@ const Schema = mongoose.Schema;
 const model = new Schema(
   {
     dueDate: Date,
-    dateSubmitToCustomer:Date
+    dateSubmitToCustomer:Date,
+    PICHistory:[{
+      date: Date
+    }],
+    flow:[{
+      date:Date
+    }]
   },
   { timestamps: true, versionKey: false, strict: false }
 );
