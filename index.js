@@ -5,6 +5,7 @@ let app = express();
 let morgan = require("morgan");
 let mongoose = require("mongoose");
 let compression = require("compression");
+const jwt = require("jsonwebtoken")
 
 mongoose.set("strictQuery", false);
 
@@ -18,47 +19,71 @@ const server = app.listen(port, () => {
   console.log("Listening on  port " + server.address().port);
 });
 
+const jwtValidate = (req, res, next) => {
+  try {
+    if (!req.headers["authorization"]) return res.sendStatus(401);
+
+    const token = req.headers["authorization"].replace("Bearer ", "");
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        console.error("JWT verification error:", err.message);
+        return res.sendStatus(403); // Forbidden
+      }
+      next(); // Move to the next middleware
+    });
+  } catch (error) {
+    console.error("JWT validation error:", error.message);
+    return res.sendStatus(403); // Forbidden
+  }
+};
+
 app.use(morgan("tiny"));
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors());
 app.use(compression());
 
+let Auth = require("./src/routes/auth");
+app.use("/auth", Auth);
+
 let Users = require("./src/routes/users");
-app.use("/users", Users);
+app.use("/users", jwtValidate, Users);
 
 let Models = require("./src/routes/models");
-app.use("/models", Models);
+app.use("/models", jwtValidate, Models);
 
 let MASTER = require("./src/routes/masters");
-app.use("/masters", MASTER);
+app.use("/masters", jwtValidate, MASTER);
 
 let DEFECT = require("./src/routes/defect");
-app.use("/defect", DEFECT);
+app.use("/defect", jwtValidate, DEFECT);
 
 let CLAIM = require("./src/routes/claim");
-app.use("/claim", CLAIM);
+app.use("/claim", jwtValidate, CLAIM);
 
 let RESULT = require("./src/routes/result");
-app.use("/result", RESULT);
+app.use("/result", jwtValidate, RESULT);
 
 let D_CD = require("./src/routes/d-cd");
-app.use("/d-cd", D_CD);
+app.use("/d-cd", jwtValidate, D_CD);
 
 let S_CD = require("./src/routes/s-cd");
-app.use("/s-cd", S_CD);
+app.use("/s-cd", jwtValidate, S_CD);
 
 let L_CD = require("./src/routes/l-cd");
-app.use("/l-cd", L_CD);
+app.use("/l-cd", jwtValidate, L_CD);
 
 let M1E = require("./src/routes/m1e");
-app.use("/m1e", M1E);
+app.use("/m1e", jwtValidate, M1E);
 
 let R_PRINCIPLE = require("./src/routes/r-principle");
-app.use("/r-principle", R_PRINCIPLE);
+app.use("/r-principle", jwtValidate, R_PRINCIPLE);
 
 let REPORT = require("./src/routes/report");
-app.use("/report", REPORT);
+app.use("/report", jwtValidate, REPORT);
+
+let mail = require("./src/routes/mail");
+app.use("/mail", jwtValidate, mail);
 
 
 

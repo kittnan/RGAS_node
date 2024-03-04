@@ -6,6 +6,7 @@ const model = new Schema(
     employeeCode: String,
     firstName: String,
     lastName: String,
+    name: String,
     email: String,
     access: [],
     corporate: String,
