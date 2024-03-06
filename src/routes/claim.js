@@ -40,7 +40,7 @@ router.get("/", async (req, res, next) => {
       })
     }
     if (no) {
-      no = JSON.parse(no).map(item=>Number(item))
+      no = JSON.parse(no).map(item => Number(item))
       con.push({
         $match: {
           no: {
@@ -51,6 +51,69 @@ router.get("/", async (req, res, next) => {
     }
     const data = await CLAIM.aggregate(con);
     res.json(data);
+  } catch (error) {
+    console.log("🚀 ~ error:", error);
+    res.sendStatus(500);
+  }
+});
+router.get("/getRgas1", async (req, res, next) => {
+  try {
+    let { access, active = true, registerNo, no } = req.query
+    console.log("🚀 ~ active:", active)
+    let con = [
+      {
+        $match: {
+          active: active
+        }
+      }
+    ]
+    if (access) {
+      access = JSON.parse(access)
+      con.push({
+        $match: {
+          access: {
+            $in: access
+          }
+        }
+      })
+    }
+    if (registerNo) {
+      registerNo = JSON.parse(registerNo)
+      con.push({
+        $match: {
+          registerNo: {
+            $in: registerNo
+          }
+        }
+      })
+    }
+    if (no) {
+      no = JSON.parse(no).map(item => Number(item))
+      con.push({
+        $match: {
+          no: {
+            $in: no
+          }
+        }
+      })
+    }
+    const data = await CLAIM.aggregate(con);
+    let registerNos = [...new Set(data.map(item => item.registerNo))]
+    const results = await RESULT.aggregate([
+      {
+        $match: {
+          registerNo: {
+            $in: registerNos
+          }
+        }
+      }
+    ])
+    let mergeData = data.map(item => {
+      const result = results.find(result => result.registerNo == item.registerNo && result.no == item.no)
+      if (result) item.result = result
+      return item
+    })
+    res.json(mergeData);
   } catch (error) {
     console.log("🚀 ~ error:", error);
     res.sendStatus(500);

@@ -118,7 +118,7 @@ router.get("/userNextApprove", async (req, res, next) => {
 
     if (formStatus) {
       formStatus = JSON.parse(formStatus)
-      if (formStatus == 'draft') {
+      if (formStatus == 'receive information') {
         con.push({
           $match: {
             access: 'engineer'

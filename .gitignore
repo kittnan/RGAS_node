@@ -39,4 +39,6 @@ testem.log
 
 # System files
 .DS_Store
+*.env
+ecosystem.config.js
 Thumbs.db
