@@ -11,7 +11,7 @@ router.post("/send", async (req, res, next) => {
   try {
     let Mail = await MAIL.aggregate([{ $match: {} }])
     if (Mail && Mail.length > 0) {
-      console.log(req.body);
+      // console.log(req.body);
       let { to = [], cc = [], html = '' } = req.body
       Mail = Mail[0]
       let transporter = nodemailer.createTransport({
