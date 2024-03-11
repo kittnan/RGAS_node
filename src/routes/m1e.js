@@ -7,16 +7,16 @@ let axios = require("axios");
 
 router.get("/", async (req, res, next) => {
   try {
-    let { kydCD } = req.query
+    let { defect } = req.query
     let condition = [{
       $match: {}
     }]
-    if (kydCD) {
-      kydCD = JSON.parse(kydCD)
+    if (defect) {
+      defect = JSON.parse(defect)
       condition.push({
         $match: {
-          "KYD Cd": {
-            $in: kydCD
+          "Defect Phenomenon": {
+            $in: defect
           }
         }
       })

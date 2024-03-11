@@ -82,6 +82,9 @@ app.use("/r-principle", jwtValidate, R_PRINCIPLE);
 let REPORT = require("./src/routes/report");
 app.use("/report", jwtValidate, REPORT);
 
+let REPORT_INFO = require("./src/routes/reportInformation");
+app.use("/reportInformation", jwtValidate, REPORT_INFO);
+
 let mail = require("./src/routes/mail");
 app.use("/mail", jwtValidate, mail);
 
