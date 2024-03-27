@@ -37,6 +37,45 @@ router.post("/login", async (req, res) => {
     res.sendStatus(500);
   }
 })
+router.post("/loginSSO", async (req, res) => {
+  try {
+    const payload = req.body;
+    const adAcc = await axios.post("http://10.200.90.152:4038/AzureLogin/getByCondition", {
+      username: payload.username,
+      password: payload.password,
+    });
+    console.log("🚀 ~ adAcc:", adAcc.data);
+
+    let user = await USERS.aggregate([
+      {
+        $match: {
+          employeeCode: adAcc.data.description,
+        },
+      },
+    ]);
+
+    user = user?.length > 0 ? user[0] : null
+    if (!user) {
+      return res.sendStatus(400)
+    }
+
+    const access_token = jwtGenerate(user)
+    const refresh_token = jwtRefreshTokenGenerate(user)
+    const profile = user
+    user.refresh = refresh_token
+
+    res.json({
+      access_token,
+      refresh_token,
+      profile
+
+    })
+
+  } catch (error) {
+    console.log("🚀 ~ error:", error);
+    res.sendStatus(500);
+  }
+})
 const jwtGenerate = (user) => {
   const accessToken = jwt.sign(
     { name: user.employeeCode, id: user._id },
@@ -58,6 +97,7 @@ const jwtRefreshTokenValidate = (req, res, next) => {
   try {
     if (!req.headers["authorization"]) return res.sendStatus(401)
     const token = req.headers["authorization"].replace("Bearer ", "")
+    console.log("🚀 ~ token:", token)
 
     jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
       if (err) throw new Error(err)
@@ -69,7 +109,7 @@ const jwtRefreshTokenValidate = (req, res, next) => {
     next()
   } catch (error) {
     console.log("🚀 ~ error:", error)
-    return res.sendStatus(403)
+    return res.sendStatus(401)
   }
 }
 router.post("/refresh", jwtRefreshTokenValidate, async (req, res) => {
