@@ -88,6 +88,9 @@ app.use("/reportInformation", jwtValidate, REPORT_INFO);
 let mail = require("./src/routes/mail");
 app.use("/mail", jwtValidate, mail);
 
+let DOCUMENT_VERIFY = require("./src/routes/document-verify");
+app.use("/document-verify", jwtValidate, DOCUMENT_VERIFY);
+
 
 
 app.use(function (req, res, next) {

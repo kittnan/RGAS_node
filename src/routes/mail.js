@@ -3,6 +3,7 @@ let router = express.Router();
 var mongoose = require("mongodb");
 const { ObjectId } = mongoose;
 const MAIL = require("../models/mail");
+const MAIL_LOGS = require("../models/mail-log");
 let axios = require("axios");
 let nodemailer = require("nodemailer");
 
@@ -30,7 +31,7 @@ router.post("/send", async (req, res, next) => {
         subject: Mail.subject, // Subject line
         html: html
       });
-      console.log("🚀 ~ info:", info)
+      await MAIL_LOGS.insertMany({ info, subject: Mail.subject })
       res.json(info)
     }
   } catch (error) {
