@@ -92,6 +92,13 @@ let DOCUMENT_VERIFY = require("./src/routes/document-verify");
 app.use("/document-verify", jwtValidate, DOCUMENT_VERIFY);
 
 
+let Models_Common = require("./src/routes/models-common");
+app.use("/models-common", jwtValidate, Models_Common);
+
+
+let MAIL_TASKS = require("./src/routes/mail-tasks");
+app.use("/mail-tasks", jwtValidate, MAIL_TASKS);
+
 
 app.use(function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");

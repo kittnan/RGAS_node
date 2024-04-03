@@ -56,7 +56,7 @@ const model = new Schema(
     "flowHistory": [{}],
 
   },
-  { timestamps: true, versionKey: false, strict: true }
+  { timestamps: true, versionKey: false, strict: false }
 );
 
 const UserModule = mongoose.model("claims", model);

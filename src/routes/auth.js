@@ -80,7 +80,7 @@ const jwtGenerate = (user) => {
   const accessToken = jwt.sign(
     { name: user.employeeCode, id: user._id },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "30m", algorithm: "HS256" }
+    { expiresIn: "8h", algorithm: "HS256" }
   )
   return accessToken
 }
