@@ -234,7 +234,7 @@ router.get("/getRgas1", async (req, res, next) => {
             "PIC": "$analysisPIC.name",
             claimMonth: {
               $dateToString: {
-                format: "%d-%m-%Y",
+                format: "%m-%Y",
                 date: "$claimRegisterDate",
               },
             },
@@ -315,7 +315,7 @@ router.get("/getRgas1", async (req, res, next) => {
             "PIC": "$analysisPIC.name",
             claimMonth: {
               $dateToString: {
-                format: "%d-%m-%Y",
+                format: "%m-%Y",
                 date: "$claimRegisterDate",
               },
             },
@@ -395,7 +395,7 @@ router.get("/getRgas1", async (req, res, next) => {
             "PIC": "$analysisPIC.name",
             claimMonth: {
               $dateToString: {
-                format: "%d-%m-%Y",
+                format: "%m-%Y",
                 date: "$claimRegisterDate",
               },
             },
