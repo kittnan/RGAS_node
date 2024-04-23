@@ -7,43 +7,65 @@ const MAIL_LOGS_MODEL = require("../models/mail-log");
 const CLAIM_MODEL = require("../models/claim");
 const DEAR_ALL_MODEL = require("../models/dear-all-email");
 const MAIL_TASKS_MODEL = require("../models/mail-tasks");
+const EMAIL_CONTENT_MODEL = require("../models/email-content");
 let axios = require("axios");
 let nodemailer = require("nodemailer");
 const cron = require('node-cron');
+// foo()
+async function foo() {
+    let Mail = await MAIL_MODEL.aggregate([{ $match: {} }])
+    Mail = Mail.length > 0 ? Mail[0] : null
+    let content = await EMAIL_CONTENT_MODEL.aggregate([{ $match: { name: "claimInformation" } }])
+    content = content[0]
+    let transporter = nodemailer.createTransport({
+        host: Mail.host,
+        port: Mail.port,
+        secure: false,
+        auth: {
+            user: Mail.auth.user,
+            pass: Mail.auth.pass,
+        },
+    });
+    let info = await transporter.sendMail({
+        from: Mail.from,
+        to: "kittinan-k@kyocera.co.th",
+        cc: [],
+        subject: "SADASD",
+        html: content.html,
+    });
+    console.log("🚀 ~ info:", info)
+}
 
-// cron.schedule(' * * * * *', async () => {
-//   let tasks = await MAIL_TASKS_MODEL.aggregate([{ $match: {} }]).sort({ createdAt: 1 }).limit(10)
-//   if (tasks && tasks.length > 0) {
-//     let Mail = await MAIL_MODEL.aggregate([{ $match: {} }])
-//     Mail = Mail.length > 0 ? Mail[0] : null
-//     if (Mail) {
-//       let transporter = nodemailer.createTransport({
-//         host: Mail.host,
-//         port: Mail.port,
-//         secure: false,
-//         auth: {
-//           user: Mail.auth.user,
-//           pass: Mail.auth.pass,
-//         },
-//       });
-//       for (let index = 0; index < tasks.length; index++) {
-//         const data = tasks[index];
-//         let info = await transporter.sendMail({
-//           from: Mail.from,
-//           to: data.to,
-//           cc: data.cc,
-//           subject: data.subject,
-//           html: data.html,
-//         });
-//         const delData = await MAIL_TASKS_MODEL.deleteOne({ _id: data._id })
-//         await MAIL_LOGS_MODEL.insertMany({ info, subject: data.subject })
-//         res.json(info)
-//       }
+// cron.schedule('*/5 * * * * *', async () => {
+//     let tasks = await MAIL_TASKS_MODEL.aggregate([{ $match: {} }]).sort({ createdAt: 1 }).limit(10)
+//     if (tasks && tasks.length > 0) {
+//         let Mail = await MAIL_MODEL.aggregate([{ $match: {} }])
+//         Mail = Mail.length > 0 ? Mail[0] : null
+//         if (Mail) {
+//             let transporter = nodemailer.createTransport({
+//                 host: Mail.host,
+//                 port: Mail.port,
+//                 secure: false,
+//                 auth: {
+//                     user: Mail.auth.user,
+//                     pass: Mail.auth.pass,
+//                 },
+//             });
+//             for (let index = 0; index < tasks.length; index++) {
+//                 const data = tasks[index];
+//                 let info = await transporter.sendMail({
+//                     from: Mail.from,
+//                     to: data.to,
+//                     cc: data.cc,
+//                     subject: data.subject,
+//                     html: data.html,
+//                 });
+//                 const delData = await MAIL_TASKS_MODEL.deleteOne({ _id: data._id })
+//                 await MAIL_LOGS_MODEL.insertMany({ info, subject: data.subject })
+//                 res.json(info)
+//             }
+//         }
 //     }
-
-
-
-//   }
 // });
 
 // router.post("/send", async (req, res, next) => {

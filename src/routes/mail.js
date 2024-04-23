@@ -3,6 +3,7 @@ let router = express.Router();
 var mongoose = require("mongodb");
 const { ObjectId } = mongoose;
 const MAIL_MODEL = require("../models/mail");
+const MAIL_CONTENT_MODEL = require("../models/email-content");
 const MAIL_LOGS_MODEL = require("../models/mail-log");
 const CLAIM_MODEL = require("../models/claim");
 const DEAR_ALL_MODEL = require("../models/dear-all-email");
@@ -10,6 +11,15 @@ const MAIL_TASKS_MODEL = require("../models/mail-tasks");
 let axios = require("axios");
 let nodemailer = require("nodemailer");
 
+router.post("/save", async (req, res, next) => {
+  try {
+    let data = await MAIL_CONTENT_MODEL.updateMany({ name: "claimInformation" }, req.body)
+    res.json(data)
+  } catch (error) {
+    console.log("🚀 ~ error:", error)
+    res.sendStatus(500)
+  }
+})
 
 router.post("/send", async (req, res, next) => {
   try {
@@ -43,6 +53,7 @@ router.post("/send", async (req, res, next) => {
         subject: data.subject,
         html: data.html,
       }
+      // await MAIL_TASKS_MODEL.insertMany(insertData)
       await MAIL_LOGS_MODEL.insertMany({ info, subject: data.subject })
       res.json(info)
     }
@@ -80,6 +91,16 @@ router.post("/send", async (req, res, next) => {
 router.get('/dear-all-email', async (req, res, next) => {
   try {
     const data = await DEAR_ALL_MODEL.aggregate([{ $match: {} }])
+    res.json(data)
+  } catch (error) {
+    console.log("🚀 ~ error:", error)
+    res.sendStatus(500)
+  }
+})
+router.get('/template', async (req, res, next) => {
+  try {
+    let { name } = req.query
+    const data = await MAIL_CONTENT_MODEL.aggregate([{ $match: { name: name } }])
     res.json(data)
   } catch (error) {
     console.log("🚀 ~ error:", error)
