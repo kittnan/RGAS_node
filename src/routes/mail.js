@@ -97,6 +97,16 @@ router.get('/dear-all-email', async (req, res, next) => {
     res.sendStatus(500)
   }
 })
+router.post('/dear-all-email-save', async (req, res, next) => {
+  try {
+    await DEAR_ALL_MODEL.deleteMany({})
+    const data = await DEAR_ALL_MODEL.insertMany(req.body)
+    res.json(data)
+  } catch (error) {
+    console.log("🚀 ~ error:", error)
+    res.sendStatus(500)
+  }
+})
 router.get('/template', async (req, res, next) => {
   try {
     let { name } = req.query

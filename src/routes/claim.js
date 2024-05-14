@@ -58,7 +58,7 @@ router.get("/", async (req, res, next) => {
 });
 router.get("/getRgas1", async (req, res, next) => {
   try {
-    let { access, status, registerNo, no, claimNo, PIC, modelNo, modelName, claimMonth, customerInformation, customerName, ktcAnalysisResult, judgment } = req.query
+    let { access, status, registerNo, no, claimNo, PIC, modelNo, modelName, claimMonth, customerInformation, customerName, ktcAnalysisResult, judgment, returnStyle } = req.query
     let con = [
       {
         $match: {
@@ -134,6 +134,15 @@ router.get("/getRgas1", async (req, res, next) => {
         $match: {
           modelCode: {
             $regex: new RegExp(modelName, "i")
+          }
+        }
+      })
+    }
+    if (returnStyle) {
+      con.push({
+        $match: {
+          returnStyle: {
+            $regex: new RegExp(returnStyle, "i")
           }
         }
       })
@@ -242,10 +251,11 @@ router.get("/getRgas1", async (req, res, next) => {
             "modelNo": "$modelNo",
             "customerName": "$customerName",
             "occurredLocation": "$occurredLocation",
-            "defect": "$descriptionENG",
+            "defect": "$results.ktcAnalysisResult",
             "qty": "$qty",
-            "lotNo": "$productNo",
+            "lotNo": "$productLotNo",
             "judgment": "$results.ktcJudgment",
+            "returnStyle": "$returnStyle",
           }
         }
       ]
@@ -323,10 +333,11 @@ router.get("/getRgas1", async (req, res, next) => {
             "modelNo": "$modelNo",
             "customerName": "$customerName",
             "occurredLocation": "$occurredLocation",
-            "defect": "$descriptionENG",
+            "defect": "$results.ktcAnalysisResult",
             "qty": "$qty",
-            "lotNo": "$productNo",
+            "lotNo": "$productLotNo",
             "judgment": "$results.ktcJudgment",
+            "returnStyle": "$returnStyle",
           }
         }
       ]
@@ -388,6 +399,43 @@ router.get("/getRgas1", async (req, res, next) => {
           }
         },
         {
+          $lookup: {
+            from: "document-verifies",
+            let: {
+              local1: "$registerNo",
+              local2: "$no"
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: [
+                          "$registerNo",
+                          "$$local1"
+                        ]
+                      },
+                      {
+                        $eq: ["$no", "$$local2"]
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "document"
+          }
+        },
+        {
+          $addFields:
+          {
+            document: {
+              $arrayElemAt: ["$document", 0]
+            }
+          }
+        },
+        {
           $project: {
             "registerNo": "$registerNo",
             "no": "$no",
@@ -403,10 +451,13 @@ router.get("/getRgas1", async (req, res, next) => {
             "modelNo": "$modelNo",
             "customerName": "$customerName",
             "occurredLocation": "$occurredLocation",
-            "defect": "$descriptionENG",
+            "defect": "$results.ktcAnalysisResult",
             "qty": "$qty",
-            "lotNo": "$productNo",
+            "lotNo": "$productLotNo",
             "judgment": "$results.ktcJudgment",
+            "returnStyle": "$returnStyle",
+            "document": "$document",
+
           }
         }
       ]
@@ -424,6 +475,198 @@ router.get("/getRgas1", async (req, res, next) => {
       res.json(data)
     }
 
+  } catch (error) {
+    console.log("🚀 ~ error:", error);
+    res.sendStatus(500);
+  }
+});
+
+router.get("/getClaimData", async (req, res, next) => {
+  try {
+    let { access, status, registerNo, no, claimNo, PIC, modelNo, modelName, claimMonth, customerInformation, customerName, ktcAnalysisResult, judgment, returnStyle, start, end } = req.query
+    let con1 = [
+      {
+        $match: {
+
+        }
+      },
+    ]
+
+    if (start && end) {
+      start = moment(start,'DD-MM-YY').startOf('day').toDate()
+      end = moment(end,'DD-MM-YY').endOf('day').toDate()
+      con1.push({
+        $match: {
+          claimRegisterDate: {
+            $gte: start,
+            $lte: end
+          }
+        }
+      })
+    } else if (start) {
+      start = moment(start,'DD-MM-YY').startOf('day').toDate()
+      con1.push({
+        $match: {
+          claimRegisterDate: {
+            $gte: start,
+          }
+        }
+      })
+    } else if (end) {
+      end = moment(end,'DD-MM-YY').endOf('day').toDate()
+      con1.push({
+        $match: {
+          claimRegisterDate: {
+            $lte: end
+          }
+        }
+      })
+    }
+    let resData = await CLAIM.aggregate([
+      ...con1,
+
+      {
+        '$lookup': {
+          'from': 'results',
+          'let': {
+            'local1': '$registerNo',
+            'local2': '$no'
+          },
+          'pipeline': [
+            {
+              '$match': {
+                '$expr': {
+                  '$and': [
+                    {
+                      '$eq': [
+                        '$registerNo', '$$local1'
+                      ]
+                    }, {
+                      '$eq': [
+                        '$no', '$$local2'
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          'as': 'results'
+        }
+      }, {
+        '$lookup': {
+          'from': 'reports',
+          'let': {
+            'local1': '$registerNo',
+            'local2': '$no'
+          },
+          'pipeline': [
+            {
+              '$match': {
+                '$expr': {
+                  '$and': [
+                    {
+                      '$eq': [
+                        '$registerNo', '$$local1'
+                      ]
+                    }, {
+                      '$eq': [
+                        '$no', '$$local2'
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          'as': 'reports'
+        }
+      }, {
+        '$lookup': {
+          'from': 'document-verifies',
+          'let': {
+            'local1': '$registerNo',
+            'local2': '$no'
+          },
+          'pipeline': [
+            {
+              '$match': {
+                '$expr': {
+                  '$and': [
+                    {
+                      '$eq': [
+                        '$registerNo', '$$local1'
+                      ]
+                    }, {
+                      '$eq': [
+                        '$no', '$$local2'
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          'as': 'document-verifiles'
+        }
+      }, {
+        '$lookup': {
+          'from': 'reportinformations',
+          'let': {
+            'local1': '$registerNo',
+            'local2': '$no'
+          },
+          'pipeline': [
+            {
+              '$match': {
+                '$expr': {
+                  '$and': [
+                    {
+                      '$eq': [
+                        '$registerNo', '$$local1'
+                      ]
+                    }, {
+                      '$eq': [
+                        '$no', '$$local2'
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          'as': 'reportinformations'
+        }
+      }, {
+        '$addFields': {
+          'results': {
+            '$arrayElemAt': [
+              '$results', 0
+            ]
+          },
+          // 'reports': {
+          //   '$arrayElemAt': [
+          //     '$reports', 0
+          //   ]
+          // }, 
+          'documentVerifiles': {
+            '$arrayElemAt': [
+              '$document-verifiles', 0
+            ]
+          },
+          'reportInformations': {
+            '$arrayElemAt': [
+              '$reportinformations', 0
+            ]
+          }
+        }
+      }, {
+        '$unset': [
+          'document-verifiles', 'reportinformations'
+        ]
+      }
+    ])
+    res.json(resData)
   } catch (error) {
     console.log("🚀 ~ error:", error);
     res.sendStatus(500);
