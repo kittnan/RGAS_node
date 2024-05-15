@@ -493,8 +493,8 @@ router.get("/getClaimData", async (req, res, next) => {
     ]
 
     if (start && end) {
-      start = moment(start,'DD-MM-YY').startOf('day').toDate()
-      end = moment(end,'DD-MM-YY').endOf('day').toDate()
+      start = moment(start, 'DD-MM-YY').startOf('day').toDate()
+      end = moment(end, 'DD-MM-YY').endOf('day').toDate()
       con1.push({
         $match: {
           claimRegisterDate: {
@@ -504,7 +504,7 @@ router.get("/getClaimData", async (req, res, next) => {
         }
       })
     } else if (start) {
-      start = moment(start,'DD-MM-YY').startOf('day').toDate()
+      start = moment(start, 'DD-MM-YY').startOf('day').toDate()
       con1.push({
         $match: {
           claimRegisterDate: {
@@ -513,7 +513,7 @@ router.get("/getClaimData", async (req, res, next) => {
         }
       })
     } else if (end) {
-      end = moment(end,'DD-MM-YY').endOf('day').toDate()
+      end = moment(end, 'DD-MM-YY').endOf('day').toDate()
       con1.push({
         $match: {
           claimRegisterDate: {
@@ -665,7 +665,7 @@ router.get("/getClaimData", async (req, res, next) => {
           'document-verifiles', 'reportinformations'
         ]
       }
-    ])
+    ]).sort({ registerNo: 1 })
     res.json(resData)
   } catch (error) {
     console.log("🚀 ~ error:", error);

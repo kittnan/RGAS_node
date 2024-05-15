@@ -14,6 +14,8 @@ router.post("/login", async (req, res) => {
         $match: {
           employeeCode: payload.username,
           employeeCode: payload.password,
+          active: true
+
         },
       },
     ]);
@@ -50,6 +52,8 @@ router.post("/loginSSO", async (req, res) => {
       {
         $match: {
           employeeCode: adAcc.data.description,
+          active: true
+
         },
       },
     ]);

@@ -19,6 +19,7 @@ router.post("/login", async (req, res, next) => {
           $match: {
             employeeCode: payload.username,
             employeeCode: payload.password,
+            active: true
           },
         },
       ]);
@@ -32,12 +33,13 @@ router.post("/login", async (req, res, next) => {
         {
           $match: {
             employee_code: adAcc.data.description,
+            active: true
           },
         },
       ]);
-      if (resDB && resDB.length > 0){
+      if (resDB && resDB.length > 0) {
         res.json(resDB);
-      }else{
+      } else {
         throw ''
       }
     }
@@ -70,14 +72,22 @@ router.post("/create", async (req, res, next) => {
 
 router.get("/", async (req, res, next) => {
   try {
-    let { access, active = true, } = req.query
     let con = [
       {
-        $match: {
-          active: active
-        }
+        $match: {}
       }
     ]
+    let { _id, access, active = true, } = req.query
+    if (active != 0) {
+      con = [
+        {
+          $match: {
+            active: active
+          }
+        }
+      ]
+    }
+
     if (access) {
       access = JSON.parse(access)
       con.push({
@@ -85,6 +95,13 @@ router.get("/", async (req, res, next) => {
           access: {
             $in: access
           }
+        }
+      })
+    }
+    if (_id) {
+      con.push({
+        $match: {
+          _id: new ObjectId(_id)
         }
       })
     }
@@ -133,5 +150,28 @@ router.get("/userNextApprove", async (req, res, next) => {
     res.sendStatus(500);
   }
 });
+
+router.post('/update', async (req, res) => {
+  try {
+    let data = req.body
+    if (data && data.length > 0) {
+      let updateItems = data.map(d => {
+        return {
+          updateMany: {
+            filter: { _id: new ObjectId(d._id) },
+            update: { $set: d }
+          }
+        }
+      })
+      let result = await USERS.bulkWrite(updateItems)
+      res.json(result)
+    } else {
+      throw ''
+    }
+  } catch (error) {
+    console.log("🚀 ~ error:", error)
+    res.sendStatus(500)
+  }
+})
 
 module.exports = router;
