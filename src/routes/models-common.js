@@ -8,7 +8,6 @@ let axios = require("axios");
 router.get("/", async (req, res, next) => {
   try {
     let { kydCD, modelNo } = req.query
-    console.log("🚀 ~ modelNo:", modelNo)
     let condition = [{
       $match: {}
     }]
