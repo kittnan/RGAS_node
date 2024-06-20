@@ -665,7 +665,7 @@ router.get("/getClaimData", async (req, res, next) => {
           'document-verifiles', 'reportinformations'
         ]
       }
-    ]).sort({ registerNo: 1 })
+    ]).sort({ claimNo: 1 })
     res.json(resData)
   } catch (error) {
     console.log("🚀 ~ error:", error);
