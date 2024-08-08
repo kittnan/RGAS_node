@@ -113,6 +113,18 @@ router.post("/createOrUpdate", async (req, res, next) => {
     res.sendStatus(500);
   }
 });
+router.put("/updateManyByRegisterNo", async (req, res, next) => {
+  try {
+    const data = await REPORT.updateMany(
+      { registerNo: req.body.registerNo, name: req.body.name },
+      { $set: req.body },
+    )
+    res.json(data);
+  } catch (error) {
+    console.log("🚀 ~ error:", error);
+    res.sendStatus(500);
+  }
+});
 router.post("/delete", async (req, res, next) => {
   try {
     const data = await REPORT.bulkWrite([

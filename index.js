@@ -96,6 +96,11 @@ let Models_Common = require("./src/routes/models-common");
 app.use("/models-common", jwtValidate, Models_Common);
 
 
+let Estimate_Shipment = require("./src/routes/estimate-shipment");
+app.use("/estimate-shipment", jwtValidate, Estimate_Shipment);
+
+
+
 let MAIL_TASKS = require("./src/routes/mail-tasks");
 app.use("/mail-tasks", jwtValidate, MAIL_TASKS);
 
