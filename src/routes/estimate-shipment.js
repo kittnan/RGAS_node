@@ -7,7 +7,7 @@ let axios = require("axios");
 
 router.get("/", async (req, res, next) => {
   try {
-    let { kydCD } = req.query
+    let { kydCD, year } = req.query
     let condition = [{
       $match: {}
     }]
@@ -18,6 +18,13 @@ router.get("/", async (req, res, next) => {
           "KYD Cd": {
             $in: kydCD
           }
+        }
+      })
+    }
+    if (year) {
+      condition.push({
+        $match: {
+          year:year
         }
       })
     }

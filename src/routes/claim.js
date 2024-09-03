@@ -58,7 +58,7 @@ router.get("/", async (req, res, next) => {
 });
 router.get("/getRgas1", async (req, res, next) => {
   try {
-    let { access, status, registerNo, no, claimNo, PIC, modelNo, modelName, claimMonth, customerInformation, customerName, ktcAnalysisResult, judgment, returnStyle } = req.query
+    let { access, status, no_status, registerNo, no, claimNo, PIC, modelNo, modelName, claimMonth, customerInformation, customerName, ktcAnalysisResult, judgment, returnStyle, limit = 10, skip = 0, sort = -1, len = null } = req.query
     let con = [
       {
         $match: {
@@ -78,6 +78,26 @@ router.get("/getRgas1", async (req, res, next) => {
         $match: {
           access: {
             $in: access
+          }
+        }
+      })
+    }
+    if (status) {
+      status = JSON.parse(status)
+      con.push({
+        $match: {
+          status: {
+            $in: status
+          }
+        }
+      })
+    }
+    if (no_status) {
+      no_status = JSON.parse(no_status)
+      con.push({
+        $match: {
+          status: {
+            $nin: no_status
           }
         }
       })
@@ -179,6 +199,7 @@ router.get("/getRgas1", async (req, res, next) => {
         }
       })
     }
+
     if (ktcAnalysisResult) {
       con2 = [
         {
@@ -235,29 +256,29 @@ router.get("/getRgas1", async (req, res, next) => {
             }
           }
         },
-        {
-          $project: {
-            "registerNo": "$registerNo",
-            "no": "$no",
-            "claimStatus": "$status",
-            "PIC": "$analysisPIC.name",
-            claimMonth: {
-              $dateToString: {
-                format: "%m-%Y",
-                date: "$claimRegisterDate",
-              },
-            },
-            "claimNo": "$claimNo",
-            "modelNo": "$modelNo",
-            "customerName": "$customerName",
-            "occurredLocation": "$occurredLocation",
-            "defect": "$results.ktcAnalysisResult",
-            "qty": "$qty",
-            "lotNo": "$productLotNo",
-            "judgment": "$results.ktcJudgment",
-            "returnStyle": "$returnStyle",
-          }
-        }
+        // {
+        //   $project: {
+        //     "registerNo": "$registerNo",
+        //     "no": "$no",
+        //     "claimStatus": "$status",
+        //     "PIC": "$analysisPIC.name",
+        //     claimMonth: {
+        //       $dateToString: {
+        //         format: "%m-%Y",
+        //         date: "$claimRegisterDate",
+        //       },
+        //     },
+        //     "claimNo": "$claimNo",
+        //     "modelNo": "$modelNo",
+        //     "customerName": "$customerName",
+        //     "occurredLocation": "$occurredLocation",
+        //     "defect": "$results.ktcAnalysisResult",
+        //     "qty": "$qty",
+        //     "lotNo": "$productLotNo",
+        //     "judgment": "$results.ktcJudgment",
+        //     "returnStyle": "$returnStyle",
+        //   }
+        // }
       ]
 
     }
@@ -317,34 +338,54 @@ router.get("/getRgas1", async (req, res, next) => {
             }
           }
         },
-        {
-          $project: {
-            "registerNo": "$registerNo",
-            "no": "$no",
-            "claimStatus": "$status",
-            "PIC": "$analysisPIC.name",
-            claimMonth: {
-              $dateToString: {
-                format: "%m-%Y",
-                date: "$claimRegisterDate",
-              },
-            },
-            "claimNo": "$claimNo",
-            "modelNo": "$modelNo",
-            "customerName": "$customerName",
-            "occurredLocation": "$occurredLocation",
-            "defect": "$results.ktcAnalysisResult",
-            "qty": "$qty",
-            "lotNo": "$productLotNo",
-            "judgment": "$results.ktcJudgment",
-            "returnStyle": "$returnStyle",
-          }
-        }
+        // {
+        //   $project: {
+        //     "registerNo": "$registerNo",
+        //     "no": "$no",
+        //     "claimStatus": "$status",
+        //     "PIC": "$analysisPIC.name",
+        //     claimMonth: {
+        //       $dateToString: {
+        //         format: "%m-%Y",
+        //         date: "$claimRegisterDate",
+        //       },
+        //     },
+        //     "claimNo": "$claimNo",
+        //     "modelNo": "$modelNo",
+        //     "customerName": "$customerName",
+        //     "occurredLocation": "$occurredLocation",
+        //     "defect": "$results.ktcAnalysisResult",
+        //     "qty": "$qty",
+        //     "lotNo": "$productLotNo",
+        //     "judgment": "$results.ktcJudgment",
+        //     "returnStyle": "$returnStyle",
+        //   }
+        // }
       ]
 
 
     }
-
+    let con3_paginator = [
+      {
+        $sort: {
+          registerNo: Number(sort),
+          no: 1
+        }
+      },
+      {
+        $skip: Number(skip)
+      },
+      {
+        $limit: Number(limit)
+      }
+    ]
+    if (len) {
+      con3_paginator = [
+        {
+          $count: 'count'
+        }
+      ]
+    }
     if (con2.length >= 2) {
       if (status) {
         status = JSON.parse(status)
@@ -356,7 +397,7 @@ router.get("/getRgas1", async (req, res, next) => {
           }
         })
       }
-      const data = await CLAIM.aggregate(con2);
+      const data = await CLAIM.aggregate([...con2, ...con3_paginator]);
       res.json(data)
     } else {
       let con_addition = [
@@ -436,30 +477,68 @@ router.get("/getRgas1", async (req, res, next) => {
           }
         },
         {
-          $project: {
-            "registerNo": "$registerNo",
-            "no": "$no",
-            "claimStatus": "$status",
-            "PIC": "$analysisPIC.name",
-            claimMonth: {
-              $dateToString: {
-                format: "%m-%Y",
-                date: "$claimRegisterDate",
-              },
+          $lookup: {
+            from: "reports",
+            let: {
+              local1: "$registerNo",
+              local2: "$no"
             },
-            "claimNo": "$claimNo",
-            "modelNo": "$modelNo",
-            "customerName": "$customerName",
-            "occurredLocation": "$occurredLocation",
-            "defect": "$results.ktcAnalysisResult",
-            "qty": "$qty",
-            "lotNo": "$productLotNo",
-            "judgment": "$results.ktcJudgment",
-            "returnStyle": "$returnStyle",
-            "document": "$document",
-
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: [
+                          "$registerNo",
+                          "$$local1"
+                        ]
+                      },
+                      {
+                        $eq: ["$no", "$$local2"]
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "reports"
           }
-        }
+        },
+        // {
+        //   $addFields:
+        //   {
+        //     document: {
+        //       $arrayElemAt: ["$document", 0]
+        //     }
+        //   }
+        // },
+        // {
+        //   $project: {
+        //     "registerNo": "$registerNo",
+        //     "no": "$no",
+        //     "claimStatus": "$status",
+        //     "PIC": "$analysisPIC.name",
+        //     claimMonth: {
+        //       $dateToString: {
+        //         format: "%m-%Y",
+        //         date: "$claimRegisterDate",
+        //       },
+        //     },
+        //     "claimNo": "$claimNo",
+        //     "modelNo": "$modelNo",
+        //     "customerName": "$customerName",
+        //     "occurredLocation": "$occurredLocation",
+        //     "defect": "$results.ktcAnalysisResult",
+        //     "qty": "$qty",
+        //     "lotNo": "$productLotNo",
+        //     "judgment": "$results.ktcJudgment",
+        //     "returnStyle": "$returnStyle",
+        //     "document": "$document",
+        //     "partReceivingDate":"$result.partReceivingDate"
+
+        //   }
+        // }
       ]
       if (status) {
         status = JSON.parse(status)
@@ -471,7 +550,9 @@ router.get("/getRgas1", async (req, res, next) => {
           }
         })
       }
-      const data = await CLAIM.aggregate([...con, ...con_addition]);
+
+
+      const data = await CLAIM.aggregate([...con, ...con_addition, ...con3_paginator]);
       res.json(data)
     }
 
