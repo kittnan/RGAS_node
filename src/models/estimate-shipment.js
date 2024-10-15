@@ -3,6 +3,8 @@ const Schema = mongoose.Schema;
 
 const model = new Schema(
   {
+    Model: String,
+    year: String,
 
   },
   { timestamps: true, versionKey: false, strict: false }

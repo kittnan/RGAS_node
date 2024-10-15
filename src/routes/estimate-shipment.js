@@ -24,10 +24,32 @@ router.get("/", async (req, res, next) => {
     if (year) {
       condition.push({
         $match: {
-          year:year
+          year: year
         }
       })
     }
+    const usersQuery = await MODELS.aggregate(condition)
+    res.json(usersQuery);
+  } catch (error) {
+    console.log("🚀 ~ error:", error);
+    res.sendStatus(500);
+  }
+});
+router.get("/yearOption", async (req, res, next) => {
+  try {
+    let condition = [
+      {
+        $group:
+        {
+          _id: "$year"
+        }
+      },
+      {
+        $sort:{
+          _id: -1
+        }
+      }
+    ]
     const usersQuery = await MODELS.aggregate(condition)
     res.json(usersQuery);
   } catch (error) {
@@ -58,6 +80,7 @@ router.post("/import", async (req, res, next) => {
 router.put("/createOrUpdate", async (req, res, next) => {
   try {
     let form = req.body.map(item => {
+      delete item._id
       return {
         updateOne: {
           filter: {
