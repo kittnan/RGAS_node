@@ -11,6 +11,7 @@ mongoose.set("strictQuery", false);
 
 const dotenv = require("dotenv");
 
+// dotenv.config({ path: `.env` });
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 console.log("PORT:", process.env.PORT);
 let mongooseConnect = require("./connect");
@@ -43,66 +44,45 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors());
 app.use(compression());
 
-let Auth = require("./src/routes/auth");
-app.use("/auth", Auth);
+app.use("/auth", require("./src/routes/auth"));
 
-let Users = require("./src/routes/users");
-app.use("/users", jwtValidate, Users);
+app.use("/users", jwtValidate, require("./src/routes/users"));
 
-let Models = require("./src/routes/models");
-app.use("/models", jwtValidate, Models);
+app.use("/models", jwtValidate, require("./src/routes/models"));
 
-let MASTER = require("./src/routes/masters");
-app.use("/masters", jwtValidate, MASTER);
+app.use("/masters", jwtValidate, require("./src/routes/masters"));
 
-let DEFECT = require("./src/routes/defect");
-app.use("/defect", jwtValidate, DEFECT);
+app.use("/defect", jwtValidate, require("./src/routes/defect"));
 
-let CLAIM = require("./src/routes/claim");
-app.use("/claim", jwtValidate, CLAIM);
+app.use("/claim", jwtValidate, require("./src/routes/claim"));
 
-let RESULT = require("./src/routes/result");
-app.use("/result", jwtValidate, RESULT);
+app.use("/claim2", jwtValidate, require("./src/routes/claim2"));
 
-let D_CD = require("./src/routes/d-cd");
-app.use("/d-cd", jwtValidate, D_CD);
+app.use("/result", jwtValidate, require("./src/routes/result"));
 
-let S_CD = require("./src/routes/s-cd");
-app.use("/s-cd", jwtValidate, S_CD);
+app.use("/d-cd", jwtValidate, require("./src/routes/d-cd"));
 
-let L_CD = require("./src/routes/l-cd");
-app.use("/l-cd", jwtValidate, L_CD);
+app.use("/s-cd", jwtValidate, require("./src/routes/s-cd"));
 
-let M1E = require("./src/routes/m1e");
-app.use("/m1e", jwtValidate, M1E);
+app.use("/l-cd", jwtValidate, require("./src/routes/l-cd"));
 
-let R_PRINCIPLE = require("./src/routes/r-principle");
-app.use("/r-principle", jwtValidate, R_PRINCIPLE);
+app.use("/m1e", jwtValidate, require("./src/routes/m1e"));
 
-let REPORT = require("./src/routes/report");
-app.use("/report", jwtValidate, REPORT);
+app.use("/r-principle", jwtValidate, require("./src/routes/r-principle"));
 
-let REPORT_INFO = require("./src/routes/reportInformation");
-app.use("/reportInformation", jwtValidate, REPORT_INFO);
+app.use("/report", jwtValidate, require("./src/routes/report"));
 
-let mail = require("./src/routes/mail");
-app.use("/mail", jwtValidate, mail);
+app.use("/reportInformation", jwtValidate, require("./src/routes/reportInformation"));
 
-let DOCUMENT_VERIFY = require("./src/routes/document-verify");
-app.use("/document-verify", jwtValidate, DOCUMENT_VERIFY);
+app.use("/mail", jwtValidate, require("./src/routes/mail"));
 
+app.use("/document-verify", jwtValidate, require("./src/routes/document-verify"));
 
-let Models_Common = require("./src/routes/models-common");
-app.use("/models-common", jwtValidate, Models_Common);
+app.use("/models-common", jwtValidate, require("./src/routes/models-common"));
 
+app.use("/estimate-shipment", jwtValidate, require("./src/routes/estimate-shipment"));
 
-let Estimate_Shipment = require("./src/routes/estimate-shipment");
-app.use("/estimate-shipment", jwtValidate, Estimate_Shipment);
-
-
-
-let MAIL_TASKS = require("./src/routes/mail-tasks");
-app.use("/mail-tasks", jwtValidate, MAIL_TASKS);
+app.use("/mail-tasks", jwtValidate, require("./src/routes/mail-tasks"));
 
 
 app.use(function (req, res, next) {

@@ -58,7 +58,528 @@ router.get("/", async (req, res, next) => {
 });
 router.get("/getRgas1", async (req, res, next) => {
   try {
+    let { access, status, no_status, registerNo, no, claimNo, PIC, modelNo, modelName, claimMonth, customerInformation, customerName, ktcAnalysisResult, judgment, returnStyle, limit = 10, skip = 0, sort = -1, len = null, filterHeaders } = req.query
+
+    let con = [
+      {
+        $match: {
+          // active: active
+        }
+      }
+    ]
+    let con2 = [
+      {
+        $match: {
+        }
+      }
+    ]
+    if (access) {
+      access = JSON.parse(access)
+      con.push({
+        $match: {
+          access: {
+            $in: access
+          }
+        }
+      })
+    }
+    if (status) {
+      status = JSON.parse(status)
+      con.push({
+        $match: {
+          status: {
+            $in: status
+          }
+        }
+      })
+    }
+    if (no_status) {
+      no_status = JSON.parse(no_status)
+      con.push({
+        $match: {
+          status: {
+            $nin: no_status
+          }
+        }
+      })
+    }
+    if (registerNo) {
+      registerNo = JSON.parse(registerNo)
+      con.push({
+        $match: {
+          registerNo: {
+            $in: registerNo
+          }
+        }
+      })
+    }
+    if (no) {
+      no = JSON.parse(no).map(item => Number(item))
+      con.push({
+        $match: {
+          no: {
+            $in: no
+          }
+        }
+      })
+    }
+    if (claimNo) {
+      con.push({
+        $match: {
+          claimNo: {
+            $regex: new RegExp(claimNo, "i")
+          }
+        }
+      })
+    }
+    if (PIC) {
+      con.push({
+        $match: {
+          "analysisPIC.name": {
+            $regex: new RegExp(PIC, "i")
+          }
+        }
+      })
+    }
+    if (modelNo) {
+      con.push({
+        $match: {
+          modelNo: {
+            $regex: new RegExp(modelNo, "i")
+          }
+        }
+      })
+    }
+    if (modelName) {
+      con.push({
+        $match: {
+          modelCode: {
+            $regex: new RegExp(modelName, "i")
+          }
+        }
+      })
+    }
+    if (returnStyle) {
+      con.push({
+        $match: {
+          returnStyle: {
+            $regex: new RegExp(returnStyle, "i")
+          }
+        }
+      })
+    }
+    if (claimMonth) {
+      let dateStr = claimMonth.trim()
+      dateStr = dateStr ? dateStr.split(',') : null
+      if (dateStr && dateStr.length == 2) {
+        con.push({
+          $match: {
+            claimRegisterDate: {
+              $gte: moment(dateStr[0]).startOf('month').toDate(),
+              $lte: moment(dateStr[1]).endOf('month').toDate()
+            }
+          }
+        })
+      }
+    }
+    // if (claimMonth) {
+    //   let dateStr = claimMonth.trim()
+    //   dateStr = dateStr ? dateStr.split('-') : null
+    //   if (dateStr && dateStr.length == 2) {
+    //     con.push({
+    //       $match: {
+    //         claimRegisterDate: {
+    //           $gte: moment(`01-${dateStr[0]}-${dateStr[1]}`, 'DD-MM-YYYY').startOf('month').toDate(),
+    //           $lte: moment(`01-${dateStr[0]}-${dateStr[1]}`, 'DD-MM-YYYY').endOf('month').toDate()
+    //         }
+    //       }
+    //     })
+    //   }
+    // }
+    if (customerInformation) {
+      con.push({
+        $match: {
+          descriptionENG: {
+            $regex: new RegExp(customerInformation, "i")
+          }
+        }
+      })
+    }
+    if (customerName) {
+      con.push({
+        $match: {
+          customerName: {
+            $regex: new RegExp(customerName, "i")
+          }
+        }
+      })
+    }
+
+    if (ktcAnalysisResult) {
+      con2 = [
+        {
+          $lookup:
+          {
+            from: "results",
+            let: {
+              local1: "$registerNo",
+              local2: "$no"
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: [
+                          "$registerNo",
+                          "$$local1"
+                        ]
+                      },
+                      {
+                        $eq: ["$no", "$$local2"]
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "results"
+          }
+        },
+        {
+          $addFields:
+          {
+            results: {
+              $arrayElemAt: ["$results", 0]
+            }
+          }
+        },
+        {
+          $match:
+          {
+            results: {
+              $ne: null
+            }
+          }
+        },
+        {
+          $match:
+          {
+            "results.ktcAnalysisResult": {
+              $regex: new RegExp(ktcAnalysisResult, "i")
+            }
+          }
+        },
+        // {
+        //   $project: {
+        //     "registerNo": "$registerNo",
+        //     "no": "$no",
+        //     "claimStatus": "$status",
+        //     "PIC": "$analysisPIC.name",
+        //     claimMonth: {
+        //       $dateToString: {
+        //         format: "%m-%Y",
+        //         date: "$claimRegisterDate",
+        //       },
+        //     },
+        //     "claimNo": "$claimNo",
+        //     "modelNo": "$modelNo",
+        //     "customerName": "$customerName",
+        //     "occurredLocation": "$occurredLocation",
+        //     "defect": "$results.ktcAnalysisResult",
+        //     "qty": "$qty",
+        //     "lotNo": "$productLotNo",
+        //     "judgment": "$results.ktcJudgment",
+        //     "returnStyle": "$returnStyle",
+        //   }
+        // }
+      ]
+
+    }
+    if (judgment) {
+      con2 = [
+        {
+          $lookup:
+          {
+            from: "results",
+            let: {
+              local1: "$registerNo",
+              local2: "$no"
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: [
+                          "$registerNo",
+                          "$$local1"
+                        ]
+                      },
+                      {
+                        $eq: ["$no", "$$local2"]
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "results"
+          }
+        },
+        {
+          $addFields:
+          {
+            results: {
+              $arrayElemAt: ["$results", 0]
+            }
+          }
+        },
+        {
+          $match:
+          {
+            results: {
+              $ne: null
+            }
+          }
+        },
+        {
+          $match:
+          {
+            "results.ktcJudgment": {
+              $regex: new RegExp(judgment, "i")
+            }
+          }
+        },
+        // {
+        //   $project: {
+        //     "registerNo": "$registerNo",
+        //     "no": "$no",
+        //     "claimStatus": "$status",
+        //     "PIC": "$analysisPIC.name",
+        //     claimMonth: {
+        //       $dateToString: {
+        //         format: "%m-%Y",
+        //         date: "$claimRegisterDate",
+        //       },
+        //     },
+        //     "claimNo": "$claimNo",
+        //     "modelNo": "$modelNo",
+        //     "customerName": "$customerName",
+        //     "occurredLocation": "$occurredLocation",
+        //     "defect": "$results.ktcAnalysisResult",
+        //     "qty": "$qty",
+        //     "lotNo": "$productLotNo",
+        //     "judgment": "$results.ktcJudgment",
+        //     "returnStyle": "$returnStyle",
+        //   }
+        // }
+      ]
+
+
+    }
+    let con3_paginator = [
+      {
+        $sort: {
+          registerNo: Number(sort),
+          no: 1
+        }
+      },
+      {
+        $skip: Number(skip)
+      },
+      {
+        $limit: Number(limit)
+      }
+    ]
+    if (len) {
+      con3_paginator = [
+        {
+          $count: 'count'
+        }
+      ]
+    }
+    if (con2.length >= 2) {
+      if (status) {
+        status = JSON.parse(status)
+        con2.push({
+          $match: {
+            status: {
+              $in: status
+            }
+          }
+        })
+      }
+      const data = await CLAIM.aggregate([...con2, ...con3_paginator]);
+      res.json(data)
+    } else {
+      let con_addition = [
+        {
+          $lookup:
+          {
+            from: "results",
+            let: {
+              local1: "$registerNo",
+              local2: "$no"
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: [
+                          "$registerNo",
+                          "$$local1"
+                        ]
+                      },
+                      {
+                        $eq: ["$no", "$$local2"]
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "results"
+          }
+        },
+        {
+          $addFields:
+          {
+            results: {
+              $arrayElemAt: ["$results", 0]
+            }
+          }
+        },
+        {
+          $lookup: {
+            from: "document-verifies",
+            let: {
+              local1: "$registerNo",
+              local2: "$no"
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: [
+                          "$registerNo",
+                          "$$local1"
+                        ]
+                      },
+                      {
+                        $eq: ["$no", "$$local2"]
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "document"
+          }
+        },
+        {
+          $addFields:
+          {
+            document: {
+              $arrayElemAt: ["$document", 0]
+            }
+          }
+        },
+        {
+          $lookup: {
+            from: "reports",
+            let: {
+              local1: "$registerNo",
+              local2: "$no"
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $eq: [
+                          "$registerNo",
+                          "$$local1"
+                        ]
+                      },
+                      {
+                        $eq: ["$no", "$$local2"]
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "reports"
+          }
+        },
+        // {
+        //   $addFields:
+        //   {
+        //     document: {
+        //       $arrayElemAt: ["$document", 0]
+        //     }
+        //   }
+        // },
+        // {
+        //   $project: {
+        //     "registerNo": "$registerNo",
+        //     "no": "$no",
+        //     "claimStatus": "$status",
+        //     "PIC": "$analysisPIC.name",
+        //     claimMonth: {
+        //       $dateToString: {
+        //         format: "%m-%Y",
+        //         date: "$claimRegisterDate",
+        //       },
+        //     },
+        //     "claimNo": "$claimNo",
+        //     "modelNo": "$modelNo",
+        //     "customerName": "$customerName",
+        //     "occurredLocation": "$occurredLocation",
+        //     "defect": "$results.ktcAnalysisResult",
+        //     "qty": "$qty",
+        //     "lotNo": "$productLotNo",
+        //     "judgment": "$results.ktcJudgment",
+        //     "returnStyle": "$returnStyle",
+        //     "document": "$document",
+        //     "partReceivingDate":"$result.partReceivingDate"
+
+        //   }
+        // }
+      ]
+      if (status) {
+        status = JSON.parse(status)
+        con.push({
+          $match: {
+            status: {
+              $in: status
+            }
+          }
+        })
+      }
+
+
+      const data = await CLAIM.aggregate([...con, ...con_addition, ...con3_paginator]);
+      res.json(data)
+    }
+
+  } catch (error) {
+    console.log("🚀 ~ error:", error);
+    res.sendStatus(500);
+  }
+});
+router.get("/getRgas1Virtual", async (req, res, next) => {
+  try {
     let { access, status, no_status, registerNo, no, claimNo, PIC, modelNo, modelName, claimMonth, customerInformation, customerName, ktcAnalysisResult, judgment, returnStyle, limit = 10, skip = 0, sort = -1, len = null } = req.query
+
     let con = [
       {
         $match: {
@@ -553,6 +1074,7 @@ router.get("/getRgas1", async (req, res, next) => {
 
 
       const data = await CLAIM.aggregate([...con, ...con_addition, ...con3_paginator]);
+      console.log("🚀 ~ data:", data)
       res.json(data)
     }
 
