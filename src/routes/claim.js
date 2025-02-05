@@ -1276,6 +1276,159 @@ router.get("/getClaimData", async (req, res, next) => {
   }
 });
 
+router.get("/getClaimVerification", async (req, res, next) => {
+  try {
+    let { access, active = true, registerNo, no } = req.query
+    let con = [
+      {
+        $match: {
+          active: active
+        }
+      }
+    ]
+    if (access) {
+      access = JSON.parse(access)
+      con.push({
+        $match: {
+          access: {
+            $in: access
+          }
+        }
+      })
+    }
+    if (registerNo) {
+      registerNo = JSON.parse(registerNo)
+      con.push({
+        $match: {
+          registerNo: {
+            $in: registerNo
+          }
+        }
+      })
+    }
+    if (no) {
+      no = JSON.parse(no).map(item => Number(item))
+      con.push({
+        $match: {
+          no: {
+            $in: no
+          }
+        }
+      })
+    }
+    
+    
+    let con2 = [
+      {
+        $lookup: {
+          from: "reportinformations",
+          let: {
+            local1: "$registerNo",
+            local2: "$no"
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$registerNo", "$$local1"]
+                    },
+                    {
+                      $eq: ["$no", "$$local2"]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          as: "reportinformations"
+        }
+      },
+      {
+        $lookup: {
+          from: "reports",
+          let: {
+            local1: "$registerNo",
+            local2: "$no"
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ["$registerNo", "$$local1"]
+                    },
+                    {
+                      $eq: ["$no", "$$local2"]
+                    },
+                    {
+                      $eq: ["$name", "finalReport"]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          as: "reports"
+        }
+      },
+      {
+        $unwind: {
+          path: "$reportinformations"
+        }
+      },
+      {
+        $unwind: {
+          path: "$reportinformations.causes"
+        }
+      },
+      {
+        $match: {
+          "reportinformations.causes.action.value3":
+            "KTC"
+        }
+      },
+      {
+        $addFields: {
+          reports: {
+            $arrayElemAt: ["$reports", 0]
+          }
+        }
+      },
+      {
+        $project: {
+          claimNo: "$claimNo",
+          claimDetail:
+            "$reportinformations.causes.cause.value1",
+          modelNo: "$modelNo",
+          modelNoPNL: "$modelNoPNL",
+          modelNoSMT: "$modelNoSMT",
+          size: "$size",
+          type: "$type",
+          dateSubmitToCustomer:
+            "$reports.dateSubmitToCustomer",
+          actionItem:
+            "$reportinformations.causes.action.value4",
+          rootCause:
+            "$reportinformations.causes.action.value2",
+          customerInternal:
+            "$reportinformations.causes.action.value1",
+          implementEffective:
+            "$reportinformations.causes.action.date"
+        }
+      }
+    ]
+
+    const data = await CLAIM.aggregate([...con,...con2]);
+    res.json(data);
+  } catch (error) {
+    console.log("🚀 ~ error:", error);
+    res.sendStatus(500);
+  }
+});
+
 router.post("/createOrUpdate", async (req, res, next) => {
   try {
     let payload = req.body
