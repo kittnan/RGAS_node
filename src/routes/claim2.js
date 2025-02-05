@@ -442,18 +442,19 @@ router.get("/getRgas1", async (req, res, next) => {
             ]
           },
           "docStatus": {
-            $cond: [
+            "$cond": [
               {
-                $and: [
-                  { $eq: ["$document.apply", true] },
-                  { $eq: ["$document.revise", true] },
-                  { $eq: ["$document.verify", true] }
+                "$and": [
+                  { "$ne": [{ "$ifNull": ["$document.apply", ""] }, ""] },
+                  { "$ne": [{ "$ifNull": ["$document.revise", ""] }, ""] },
+                  { "$ne": [{ "$ifNull": ["$document.verify", ""] }, ""] }
                 ]
               },
-              "Closed",  // ถ้าทุกฟิลด์ภายใน document เป็น true ค่า docStatus จะเป็น 'Closed'
-              "Pending"  // ถ้าเงื่อนไขไม่ตรง ค่า docStatus จะเป็น 'Pending'
+              "Closed",
+              "Pending"
             ]
           },
+
           "claimStatus": "$status"
         }
       }
